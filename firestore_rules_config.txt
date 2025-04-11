@@ -1,0 +1,74 @@
+Configuração de Regras do Firestore Database para Personal Finance App
+
+=== Para Desenvolvimento (Permissões Abertas) ===
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Temporariamente permitir acesso total durante desenvolvimento
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+=== Para Produção (Regras de Segurança) ===
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regras para usuários
+    match /usuarios/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Regras para receitas
+    match /receitas/{docId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Regras para despesas
+    match /despesas/{docId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Regras para categorias de receita
+    match /categorias_receita/{docId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Regras para categorias de despesa
+    match /categorias_despesa/{docId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Regras para backups
+    match /backups/{docId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+  }
+}
+
+=== Instruções para Implementação ===
+
+1. Para modo de desenvolvimento:
+   - Use as regras de permissões abertas (primeira versão)
+   - Acesse o console do Firebase: https://console.firebase.google.com/
+   - Navegue até seu projeto > Firestore Database > Regras
+   - Cole as regras de desenvolvimento e publique
+   - AVISO: Nunca use estas regras em produção!
+
+2. Para ambiente de produção:
+   - Substitua pelas regras de segurança (segunda versão)
+   - Garanta que apenas usuários autenticados possam acessar seus próprios dados
+   - Acesse o console do Firebase como acima
+   - Cole as regras de produção e publique
+   
+3. Se estiver usando Firebase CLI:
+   - Coloque as regras desejadas no arquivo firestore.rules
+   - Execute: firebase deploy --only firestore:rules
